@@ -1,4 +1,5 @@
 import struct
+import sys
 
 def left_rotate(x, n):
     return ((x << n) & 0xFFFFFFFF) | (x >> (32 - n))
@@ -99,6 +100,35 @@ def sm3_hash(msg: bytes) -> str:
 
     return ''.join(f'{x:08x}' for x in V)
 
-data = b"abc"
-digest = sm3_hash(data)
-print("SM3:", digest)
+print("1.加密输入文本（UTF-8编码）\n2.加密输入文本（自定义编码）\n3.加密指定文件")
+operation = input("请选择操作(1/2): ")
+if operation == '1':
+    print("请输入待加密文本，按回车-Ctrl+Z-回车结束输入:")
+    data = sys.stdin.read()
+    data = data.rstrip()  # 去除末尾换行符
+    data = bytes(data, 'utf-8')
+    digest = sm3_hash(data)
+    print("SM3:", digest)
+elif operation == '2':
+    encoding = input("请输入文本编码（如utf-8、gbk等）: ")
+    print("请输入待加密文本，按回车-Ctrl+Z-回车结束输入:")
+    data = sys.stdin.read()
+    data = data.rstrip()
+    try:
+        data = bytes(data, encoding)
+    except (LookupError, UnicodeEncodeError):
+        print("编码不合法或内容无法用该编码编码。")
+        sys.exit(1)
+    digest = sm3_hash(data)
+    print("SM3:", digest)
+elif operation == '3':
+    file_path = input("请输入待加密文件路径: ")
+    try:
+        with open(file_path, 'rb') as f:
+            data = f.read()
+        digest = sm3_hash(data)
+        print("SM3:", digest)
+    except FileNotFoundError:
+        print("文件未找到，请检查路径是否正确。")
+else:
+    print("无效操作。")
