@@ -30,6 +30,33 @@ def pkcs7_unpad(data: bytes) -> bytes:
         raise ValueError("填充内容不正确")
     return data[:-pad_len]
 
+def encrypt_bytes(data: bytes, key: bytes) -> bytes:
+    padded = pkcs7_pad(data, 16)
+    key_buf = to_c_buffer(key)
+    plain_buf = to_c_buffer(padded)
+    enc_buf = (c_ubyte * (len(padded) + 16))()
+    enc_len = c_uint(0)
+    ret = sm4.SM4_ECB_Encrypt(
+        key_buf, len(key),
+        plain_buf, len(padded),
+        enc_buf, byref(enc_len)
+    )
+    assert ret == 0, f"加密失败: {ret}"
+    return bytes(enc_buf[:enc_len.value])
+
+def decrypt_bytes(data: bytes, key: bytes) -> bytes:
+    key_buf = to_c_buffer(key)
+    dec_buf = (c_ubyte * (len(data) + 16))()
+    dec_len = c_uint(0)
+    ret = sm4.SM4_ECB_Decrypt(
+        key_buf, len(key),
+        to_c_buffer(data), len(data),
+        dec_buf, byref(dec_len)
+    )
+    assert ret == 0, f"解密失败: {ret}"
+    decrypted = pkcs7_unpad(bytes(dec_buf[:dec_len.value]))
+    return decrypted
+
 def encrypt_file(input_path, output_path, key):
     with open(input_path, 'rb') as f:
         data = f.read()
@@ -67,8 +94,12 @@ def decrypt_file(input_path, output_path, key):
 if __name__ == "__main__":
     print("SM4加密测试")
     key = bytes.fromhex('0123456789abcdeffedcba9876543210')
-    # plaintext = b"恐龙抗狼哈基米, 恐龙抗狼胖宝宝"  # 任意长度
-
+    plaintext = b"klklhjm, klklpbb"  # 任意长度
+    ciphertext = encrypt_bytes(plaintext, key)
+    print("ciphertext=")
+    print(ciphertext)
+    decrypt = decrypt_bytes(ciphertext, key)
+    print(decrypt)
     # padded_plaintext = pkcs7_pad(plaintext, 16)
 
     # key_buf = to_c_buffer(key)
