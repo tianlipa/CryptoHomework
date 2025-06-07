@@ -67,7 +67,7 @@ def decrypt_file(input_path, output_path, key):
 if __name__ == "__main__":
     print("SM4加密测试")
     key = bytes.fromhex('0123456789abcdeffedcba9876543210')
-    # plaintext = b"Hello, SM4 Test!OHHHHHHHHHHHHHHH"  # 任意长度
+    # plaintext = b"恐龙抗狼哈基米, 恐龙抗狼胖宝宝"  # 任意长度
 
     # padded_plaintext = pkcs7_pad(plaintext, 16)
 
