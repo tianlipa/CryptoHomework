@@ -2,13 +2,13 @@
 #define SM4_H
 
 #ifdef _WIN32
-  #ifdef SM4_EXPORTS
-    #define SM4_API __declspec(dllexport)
-  #else
-    #define SM4_API __declspec(dllimport)
-  #endif
+#  ifdef SM4_EXPORTS
+#    define SM4_API __declspec(dllexport)
+#  else
+#    define SM4_API __declspec(dllimport)
+#  endif
 #else
-  #define SM4_API
+#  define SM4_API
 #endif
 
 #ifdef __cplusplus

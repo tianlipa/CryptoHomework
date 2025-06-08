@@ -1,5 +1,6 @@
 #include "sm4.h"
 #include <string.h>
+
 #define SM4_ROUND 32
 
 static unsigned int FK[4] = {0xA3B1BAC6, 0x56AA3350, 0x677D9197, 0xB27022DC};
@@ -46,14 +47,7 @@ unsigned int SMS4_T1(unsigned int dwA) {
     unsigned int dwB = 0;
     unsigned int dwC = 0;
     int i = 0;
-    /*
-        for (i=0;i<4;i++)
-        {
-            a0[i] = (unsigned char)((dwA>>(i*8)) & 0xff);
-            b0[i] = Sbox[a0[i]];
-            dwB  |= (b0[i]<<(i*8));
-        }
-    */
+
     a0[0] = (unsigned char)((dwA) & 0xff);
     b0[0] = Sbox[a0[0]];
     dwB |= (b0[0]);
@@ -81,14 +75,7 @@ unsigned int SMS4_T2(unsigned int dwA) {
     unsigned int dwB = 0;
     unsigned int dwC = 0;
     int i = 0;
-    /*
-        for (i=0;i<4;i++)
-        {
-            a0[i] = (unsigned char)((dwA>>(i*8)) & 0xff);
-            b0[i] = Sbox[a0[i]];
-            dwB  |= (b0[i]<<(i*8));
-        }
-    */
+    
     a0[0] = (unsigned char)((dwA) & 0xff);
     b0[0] = Sbox[a0[0]];
     dwB |= (b0[0]);
@@ -132,22 +119,12 @@ void SMS4_ECB_Encryption_Core(unsigned int X[],
                               unsigned int Y[]) {
     unsigned int tempX[4] = {0};
     int i = 0;
-    /*
-        for (i=0;i<4;i++)
-        {
-            tempX[i]=X[i];
-        }
-    */
+
     tempX[0] = X[0];
     tempX[1] = X[1];
     tempX[2] = X[2];
     tempX[3] = X[3];
-    /*
-        for (i=0;i<SM4_ROUND;i++)
-        {
-            tempX[i%4]^=SMS4_T1(tempX[(i+1)%4]^tempX[(i+2)%4]^tempX[(i+3)%4]^rk[i]);
-        }
-    */
+    
     tempX[0] ^= SMS4_T1(tempX[1] ^ tempX[2] ^ tempX[3] ^ rk[0]);
     tempX[1] ^= SMS4_T1(tempX[2] ^ tempX[3] ^ tempX[0] ^ rk[1]);
     tempX[2] ^= SMS4_T1(tempX[3] ^ tempX[0] ^ tempX[1] ^ rk[2]);
@@ -187,10 +164,7 @@ void SMS4_ECB_Encryption_Core(unsigned int X[],
     tempX[1] ^= SMS4_T1(tempX[2] ^ tempX[3] ^ tempX[0] ^ rk[29]);
     tempX[2] ^= SMS4_T1(tempX[3] ^ tempX[0] ^ tempX[1] ^ rk[30]);
     tempX[3] ^= SMS4_T1(tempX[0] ^ tempX[1] ^ tempX[2] ^ rk[31]);
-    /*    for (i=0;i<4;i++)
-        {
-            Y[i]=tempX[3-i];
-        }*/
+    
     Y[0] = tempX[3];
     Y[1] = tempX[2];
     Y[2] = tempX[1];
@@ -340,17 +314,6 @@ void SMS4_ECB_DecryptionEx(unsigned char ciphertext[16],
     SMS4_convert_to_host_order(_pt, (unsigned int*)plaintext, 4);
 }
 
-/**@brief  ECB模式的SMS4加密
- * @param[in]  pKey         密钥
- * @param[in]  KeyLen    密钥长度
- * @param[in]  pInData    输入数据
- * @param[in]  inDataLen    输入数据长度
- * @param[out]  pOutData    输出数据
- * @param[out]  pOutDataLen    输出数据长度
- * @return
- * @remarks
- *
- */
 int SM4_ECB_Encrypt(unsigned char* pKey,
                     unsigned int KeyLen,
                     unsigned char* pInData,
@@ -358,7 +321,6 @@ int SM4_ECB_Encrypt(unsigned char* pKey,
                     unsigned char* pOutData,
                     unsigned int* pOutDataLen) {
     int i = 0;
-    // int rv = 0;
     int loop = 0;
     unsigned int rk[32];
 
@@ -381,17 +343,6 @@ int SM4_ECB_Encrypt(unsigned char* pKey,
     return 0;
 }
 
-/**@brief  ECB模式的SM4解密
- * @param[in]  pKey         密钥
- * @param[in]  KeyLen    密钥长度
- * @param[in]  pInData    输入数据
- * @param[in]  inDataLen    输入数据长度
- * @param[out]  pOutData    输出数据
- * @param[out]  pOutDataLen    输出数据长度
- * @return
- * @remarks
- *
- */
 int SM4_ECB_Decrypt(unsigned char* pKey,
                     unsigned int KeyLen,
                     unsigned char* pInData,

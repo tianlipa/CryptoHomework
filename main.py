@@ -5,7 +5,6 @@ from sm4 import encrypt_file, decrypt_file, encrypt_bytes, decrypt_bytes
 from sm3 import sm3_hash
 import secrets
 import time
-# ...existing code...
 
 import tkinter as tk
 from tkinter import filedialog, simpledialog, messagebox, scrolledtext
@@ -52,7 +51,7 @@ def add_file_to_vault(filepath, user_key: bytes):
     enc_name = encrypt_filename(filename, user_key) + ".enc"
     enc_path = os.path.join(VAULT_FOLDER, enc_name)
 
-        # 检查是否已存在同名文件
+    # 检查是否已存在同名文件
     if enc_name in vault["files"]:
         raise Exception(f"保险箱内已存在同名文件。")
 
@@ -64,10 +63,8 @@ def add_file_to_vault(filepath, user_key: bytes):
 
     # 用文件密钥加密文件
     encrypt_file(filepath, enc_path, file_key)
-    file_hash = sm3_hash(open(filepath, "rb").read())
+    # 移除 hash 计算
     vault["files"][enc_name] = {
-        # 不再保存 original_name
-        "hash": file_hash,
         "timestamp": datetime.now().isoformat(),
         "enc_file_key": enc_file_key_hex
     }
@@ -108,7 +105,7 @@ def list_vault(user_key: bytes):
             dec_name = decrypt_filename(enc_filename, user_key)
         except Exception:
             dec_name = "<解密失败>"
-        print(f"[{meta['timestamp']}] {dec_name} → {enc_name} (hash: {meta['hash'][:8]}...)")
+        print(f"[{meta['timestamp']}] {dec_name} → {enc_name} ")
 
 
 
@@ -151,6 +148,7 @@ def gui_main():
             add_file_to_vault(filepath, user_key)
             elapsed_time = time.time() - start_time
             messagebox.showinfo("成功", f"文件 {filepath} 已加密并加入保险箱，用时 {elapsed_time:.4f} 秒")
+            do_list()
         except Exception as e:
             messagebox.showerror("错误", str(e))
 
@@ -169,6 +167,7 @@ def gui_main():
             remove_file_from_vault(filename, output_path, user_key)
             elapsed_time = time.time() - start_time
             messagebox.showinfo("成功", f"文件 {filename} 已解密并移除保险箱，用时 {elapsed_time:.4f} 秒")
+            do_list()
         except Exception as e:
             messagebox.showerror("错误", str(e))
 
@@ -186,9 +185,28 @@ def gui_main():
                 except Exception:
                     dec_name = "<解密失败>"
                 output.insert(tk.END, f"[{meta['timestamp']}] {dec_name} → {enc_name}\n")
-                output.insert(tk.END, f"hash: {meta['hash']}\n\n")
+                # output.insert(tk.END, f"hash: {meta['hash']}\n\n")
         except Exception as e:
             messagebox.showerror("错误", str(e))
+
+    def do_reset():
+        if not messagebox.askyesno("确认", "确定要重置保险箱吗？此操作会删除所有保险箱文件且无法恢复！"):
+            return
+        try:
+            # 删除 vault_index.json
+            if os.path.exists(VAULT_INDEX):
+                os.remove(VAULT_INDEX)
+            # 删除 vault 目录下所有文件
+            if os.path.exists(VAULT_FOLDER):
+                for filename in os.listdir(VAULT_FOLDER):
+                    file_path = os.path.join(VAULT_FOLDER, filename)
+                    if os.path.isfile(file_path):
+                        os.remove(file_path)
+                os.rmdir(VAULT_FOLDER)
+            output.delete(1.0, tk.END)
+            messagebox.showinfo("成功", "保险箱已重置。")
+        except Exception as e:
+            messagebox.showerror("错误", f"重置失败: {e}")
 
     root = tk.Tk()
     root.title("SM4 文件保险箱 by tianlipa")
@@ -201,10 +219,11 @@ def gui_main():
     tk.Button(root, text="添加文件", command=do_add).grid(row=1, column=1, padx=5, pady=5)
     tk.Button(root, text="移除文件", command=do_remove).grid(row=1, column=2, padx=5, pady=5)
     tk.Button(root, text="列出文件", command=do_list).grid(row=1, column=3, padx=5, pady=5)
-    tk.Button(root, text="退出", command=root.quit).grid(row=1, column=4, padx=5, pady=5)
+    tk.Button(root, text="重置保险箱", command=do_reset).grid(row=1, column=4, padx=5, pady=5)
+    tk.Button(root, text="退出", command=root.quit).grid(row=1, column=5, padx=5, pady=5)
 
     output = scrolledtext.ScrolledText(root, width=80, height=20)
-    output.grid(row=2, column=0, columnspan=5, padx=5, pady=5)
+    output.grid(row=2, column=0, columnspan=6, padx=5, pady=5)
 
     root.mainloop()
 
